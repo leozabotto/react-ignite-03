@@ -1,4 +1,4 @@
-import { createContext } from 'react'
+import { createContext, ReactNode, useState, useEffect } from 'react'
 
 interface Transaction {
   id: number
@@ -10,15 +10,32 @@ interface Transaction {
 }
 
 interface TransactionContextType {
-  transaction: Transaction[]
+  transactions: Transaction[]
 }
 
-const TransactionsContext = createContext({} as TransactionContextType)
+interface TransactionsProviderProps {
+  children: ReactNode
+}
 
-export function TransactionsProvider() {
+export const TransactionsContext = createContext({} as TransactionContextType)
+
+export function TransactionsProvider({ children }: TransactionsProviderProps) {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+
+  async function loadTransactions() {
+    const response = await fetch('http://localhost:3000/transactions')
+    const data = await response.json()
+
+    setTransactions(data)
+  }
+
+  useEffect(() => {
+    loadTransactions()
+  }, [])
+
   return (
-    <TransactionsContext.Provider
-      value={{ transaction }}
-    ></TransactionsContext.Provider>
+    <TransactionsContext.Provider value={{ transactions }}>
+      {children}
+    </TransactionsContext.Provider>
   )
 }
